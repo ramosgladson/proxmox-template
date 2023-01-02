@@ -15,7 +15,7 @@ if [ ! -f pub_keys/id_rsa.pub ]; then
 	echo "Public ssh keys file not fount!"
         echo "Would you like to create now [yes/no]?"
 	read YES_NO
-	if [ $YES_NO="yes" ] then
+	if [ $YES_NO="yes" ]; then
 		ssh-keygen -t rsa -b 4096
         else
 		echo "Create ./pub_keys/id_rsa.pub file, then paste your public ssh key file (id_rsa.pub)"
