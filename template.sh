@@ -11,7 +11,7 @@
 ############################################################################
 clear
 ### SSH KEY PATH check
-if [ ! -f pub_keys/id_rsa.pub ]; then
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
 	echo "Public ssh keys file not fount!"
         echo "Would you like to create now [yes/no]?"
 	read YES_NO
@@ -33,8 +33,9 @@ if [ ! -d $IMG_PATH ] ; then
 fi
 
 #URLS - Available compatible cloud-init images to download - Debina 9/10 and Ubuntu 18.04/20.04
-DEBIAN_10_URL="https://cdimage.debian.org/cdimage/openstack/current-10/debian-10-openstack-amd64.raw"
-DEBIAN_9_URL="https://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.raw"
+DEBIAN_9_URL="https://cdimage.debian.org/cdimage/cloud/stretch/daily/20200210-166/debian-9-nocloud-amd64-daily-20200210-166.qcow2"
+DEBIAN_10_URL="https://cdimage.debian.org/cdimage/cloud/buster/latest/debian-10-nocloud-arm64.qcow2"
+DEBIAN_11_URL="http://cdimage.debian.org/cdimage/cloud/bullseye/latest/debian-11-nocloud-amd64.qcow2"
 UBUNTU_1804_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
 UBUNTU_2004_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
 UBUNTU_2204_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
@@ -45,57 +46,62 @@ echo "Available images are: "
 echo -n "
 1 - Debian 9 - Stretch
 2 - Debian 10 - Buster
-3 - Ubuntu 18.04 LTS - Bionic
-4 - Ubuntu 20.04 LTS - Focal
-5 - Ubuntu 22.04 LTS - Jammy
-6 - OpenSUSE LEAP 15.02
-7 - CentOS 8
+3 - Debian 11 - Bullseye
+4 - Ubuntu 18.04 LTS - Bionic
+5 - Ubuntu 20.04 LTS - Focal
+6 - Ubuntu 22.04 LTS - Jammy
+7 - OpenSUSE LEAP 15.02
+8 - CentOS 8
 "
 echo -n "Choose a Image template to install: "
 read OPT_IMAGE_TEMPLATE
 
 case $OPT_IMAGE_TEMPLATE in
 	1)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${DEBIAN_9_URL##*/}"
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/debian-9.qcow2"
 		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
 			wget -c $DEBIAN_9_URL -O $TEMPLATE_VM_CI_IMAGE
 		fi
 		;;
 	2)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${DEBIAN_10_URL##*/}"
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/debian-10.qcow2"
 		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
 			wget -c $DEBIAN_10_URL -O $TEMPLATE_VM_CI_IMAGE
 		fi
 		;;
 	3)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_1804_URL##*/}"
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/debian-11.qcow2"
+		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
+			wget -c $DEBIAN_11_URL -O $TEMPLATE_VM_CI_IMAGE
+		fi
+		;;
+	4)
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/ubuntu-1804.qcow2"
 		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
 			wget -c $UBUNTU_1804_URL -O $TEMPLATE_VM_CI_IMAGE
 		fi
 		;;
-	4)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2004_URL##*/}"
+	5)
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/ubuntu-2004.qcow2"
 		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
 			wget -c $UBUNTU_2004_URL -O $TEMPLATE_VM_CI_IMAGE
 		fi
 		;;
-	5)
-
-                TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${UBUNTU_2204_URL##*/}"
+	6)
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/ubuntu-2204.qcow2"
                 if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
                   i      wget -c $UBUNTU_2204_URL -O $TEMPLATE_VM_CI_IMAGE
                 fi
                 ;;
-		
-	6)
+	7)
 
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${OPENSUSE_152_URL##*/}"
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/opensuse-1502.qcow2"
 		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
 			wget -c $OPENSUSE_152_URL -O $TEMPLATE_VM_CI_IMAGE
 		fi
 		;;
-	7)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/${CENTOS_8_URL##*/}"
+	8)
+		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/centos-8.qcow2"
 		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
 			wget -c $CENTOS_8_URL -O $TEMPLATE_VM_CI_IMAGE
 		fi
@@ -165,6 +171,15 @@ pvesm status|grep active|awk '{ printf "%-20s %-40s\n", $1, $7 }'
 echo -n "Type name of Storage to install VM: "
 read TEMPLATE_VM_STORAGE
 
+
+### VM Storage Size
+clear
+echo "########## VM SIZE ##########"
+echo ""
+echo -n "Type image size (Example: 32G)"
+read TEMPLATE_VM_SIZE
+
+
 ### VM Default user
 clear
 echo "######### USER INFORMATION ##########"
@@ -186,8 +201,8 @@ echo "########## NETWORK ##########"
 echo "Choose a Bridge interface to attach VM, options are:"
 	### Get all bridges and their networks
 	echo "BRIDGE NETWORK"|awk '{ printf "%-20s %-40s\n", $1, $2 }'
-	for BRIDGES in `ifconfig |grep vmbr|awk '{print $1}'|cut -d":" -f1` ; do
-	        BRIDGE_NETWORK=`ip a show $BRIDGES|grep "inet "|awk '{print $2}'`
+	for BRIDGES in `ip a |grep vmbr |awk '{print $2}'|cut -d":" -f1` ; do
+	        BRIDGE_NETWORK=`ip a |grep $BRIDGES |grep inet |awk '{print $2}'`
 	        echo "$BRIDGES $BRIDGE_NETWORK"|awk '{ printf "%-20s %-40s\n", $1, $2 }'
 	done
 
@@ -198,7 +213,7 @@ echo "Use DHCP?"
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) DHCP_USE="Y"; break;;
-        No ) echo "";;
+        No ) DHCP_USE="N"; break;;
     esac
 done
 if [ $DHCP_USE != "Y" ] ;then
@@ -237,6 +252,8 @@ echo Attached Bridge: $TEMPLATE_VM_BRIDGE
 echo IP Address/Network: $TEMPLATE_VM_IP
 echo Gateway $TEMPLATE_VM_GW
 echo VM ID: $TEMPLATE_VM_ID
+echo VM SIZE: $TEMPLATE_VM_SIZE
+ 
 
 
 echo "Review VM informations and continue"
@@ -268,6 +285,11 @@ check_errors() {
 }
 
 ### DO NOT TOUCH
+
+ACTION="Image resize"
+qemu-img resize $TEMPLATE_VM_CI_IMAGE $TEMPLATE_VM_SIZE > /dev/null 2>&1
+check_errors
+
 ACTION="Create VM Template $TEMPLATE_VM_ID:$TEMPLATE_VM_NAME"
 qm create $TEMPLATE_VM_ID \
 	--name $TEMPLATE_VM_NAME \
@@ -275,9 +297,9 @@ qm create $TEMPLATE_VM_ID \
 	--net0 virtio,bridge=$TEMPLATE_VM_BRIDGE \
 	--cores $TEMPLATE_VM_CORES \
 	--sockets $TEMPLATE_VM_SOCKETS \
-	--cpu cputype=kvm64 \
-	--kvm 1 \
-	--numa 1 > /dev/null 2>&1
+#	--cpu cputype=kvm64 \
+#	--kvm 1 \
+#	--numa 1 > /dev/null 2>&1
 check_errors
 
 ACTION="Import disk"
@@ -285,32 +307,29 @@ qm importdisk $TEMPLATE_VM_ID $TEMPLATE_VM_CI_IMAGE $TEMPLATE_VM_STORAGE > /dev/
 check_errors
 
 ACTION="Set disk controller and image"
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:$TEMPLATE_VM_ID/vm-$TEMPLATE_VM_ID-disk-0.raw > /dev/null 2>&1
+qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0 > /dev/null 2>&1
 check_errors
 
-ACTION="Set serial socket"
-qm set $TEMPLATE_VM_ID --serial0 socket > /dev/null 2>&1
+#Cloud INIT
+ACTION="Add cloud-init cdrom"
+qm set $TEMPLATE_VM_ID --ide2 $TEMPLATE_VM_STORAGE:cloudinit > /dev/null 2>&1
 check_errors
 
 ACTION="Set boot disk"
 qm set $TEMPLATE_VM_ID --boot c --bootdisk virtio0 > /dev/null 2>&1
 check_errors
 
-ACTION="Set Qemu Guest Agent Enabled"
+ACTION="Set serial socket"
+qm set $TEMPLATE_VM_ID --serial0 socket --vga serial0 > /dev/null 2>&1
+check_errors
+
+ACTION="set Qemu Guest Agent Enabled"
 qm set $TEMPLATE_VM_ID --agent 1 > /dev/null 2>&1
 check_errors
 
-ACTION="Set hotplug options"
-qm set $TEMPLATE_VM_ID --hotplug disk,network,usb,memory,cpu > /dev/null 2>&1
-check_errors
-
-ACTION="Set vga display"
-qm set $TEMPLATE_VM_ID --vga qxl > /dev/null 2>&1
-check_errors
-
-ACTION="Set machine type"
-qm set $TEMPLATE_VM_ID --machine q35 > /dev/null 2>&1
-check_errors
+#ACTION="Set hotplug options"
+#qm set $TEMPLATE_VM_ID --hotplug disk,network,usb,memory,cpu > /dev/null 2>&1
+#check_errors
 
 ACTION="Set name to $TEMPLATE_VM_NAME"
 qm set $TEMPLATE_VM_ID --name $TEMPLATE_VM_NAME > /dev/null 2>&1
@@ -320,17 +339,8 @@ ACTION="Set default user to $TEMPLATE_DEFAULT_USER"
 qm set $TEMPLATE_VM_ID --ciuser $TEMPLATE_DEFAULT_USER > /dev/null 2>&1
 check_errors
 
-ACTION="Set image size to 20GB"
-qm resize $TEMPLATE_VM_ID scsi0 +17748M > /dev/null 2>&1
-check_errors
-
-#Cloud INIT
-ACTION="Add cloud-init cdrom"
-qm set $TEMPLATE_VM_ID --ide2 $TEMPLATE_VM_STORAGE:cloudinit > /dev/null 2>&1
-check_errors
-
 ACTION="Set authorized ssh keys"
-qm set $TEMPLATE_VM_ID --sshkey ./pub_keys/id_rsa.pub > /dev/null 2>&1
+qm set $TEMPLATE_VM_ID --sshkey ~/.ssh/id_rsa.pub > /dev/null 2>&1
 check_errors
 
 ACTION="Set IP Address and Gateway"
