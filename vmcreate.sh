@@ -1,12 +1,12 @@
 #!/bin/bash
 ############################################################################
-#title           :proxmox-template-script
+#title           :proxmox-vm-script
 #description     :This script will prepair Cloud-init images on Proxmox VE.
 #                 for terraform purpose
 #author		 :Gladson Carneiro Ramos
 #date            :2023-01-01
-#version         :0.1
-#usage		 :bash template.sh
+#version         :0.2
+#usage		 :bash vmcreate.sh
 #based on        :https://github.com/kmee/proxmox-cloud-init-tools/blob/main/deploy.sh
 ############################################################################
 clear
@@ -53,57 +53,64 @@ echo -n "
 7 - OpenSUSE LEAP 15.02
 8 - CentOS 8
 "
-echo -n "Choose a Image template to install: "
-read OPT_IMAGE_TEMPLATE
+echo -n "Choose a Image to install: "
+read OPT_IMAGE
 
-case $OPT_IMAGE_TEMPLATE in
+case $OPT_IMAGE in
 	1)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/debian-9.qcow2"
-		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-			wget -c $DEBIAN_9_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="debian-9.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+		if [ ! -f $VM_CI_IMAGE ]; then
+			wget -c $DEBIAN_9_URL -O $VM_CI_IMAGE
 		fi
 		;;
 	2)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/debian-10.qcow2"
-		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-			wget -c $DEBIAN_10_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="debian-10.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+		if [ ! -f $VM_CI_IMAGE ]; then
+			wget -c $DEBIAN_10_URL -O $VM_CI_IMAGE
 		fi
 		;;
 	3)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/debian-11.qcow2"
-		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-			wget -c $DEBIAN_11_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="debian-11.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+		if [ ! -f $VM_CI_IMAGE ]; then
+			wget -c $DEBIAN_11_URL -O $VM_CI_IMAGE
 		fi
 		;;
 	4)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/ubuntu-1804.qcow2"
-		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-			wget -c $UBUNTU_1804_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="ubuntu-1804.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+		if [ ! -f $VM_CI_IMAGE ]; then
+			wget -c $UBUNTU_1804_URL -O $VM_CI_IMAGE
 		fi
 		;;
 	5)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/ubuntu-2004.qcow2"
-		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-			wget -c $UBUNTU_2004_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="ubuntu-2004.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+		if [ ! -f $VM_CI_IMAGE ]; then
+			wget -c $UBUNTU_2004_URL -O $VM_CI_IMAGE
 		fi
 		;;
 	6)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/ubuntu-2204.qcow2"
-                if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-                  i      wget -c $UBUNTU_2204_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="ubuntu-2204.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+                if [ ! -f $VM_CI_IMAGE ]; then
+                  i      wget -c $UBUNTU_2204_URL -O $VM_CI_IMAGE
                 fi
                 ;;
 	7)
-
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/opensuse-1502.qcow2"
-		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-			wget -c $OPENSUSE_152_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="opensuse-1502.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+		if [ ! -f $VM_CI_IMAGE ]; then
+			wget -c $OPENSUSE_152_URL -O $VM_CI_IMAGE
 		fi
 		;;
 	8)
-		TEMPLATE_VM_CI_IMAGE="$IMG_PATH/centos-8.qcow2"
-		if [ ! -f $TEMPLATE_VM_CI_IMAGE ]; then
-			wget -c $CENTOS_8_URL -O $TEMPLATE_VM_CI_IMAGE
+		ISO_NAME="centos-8.qcow2"
+		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
+		if [ ! -f $VM_CI_IMAGE ]; then
+			wget -c $CENTOS_8_URL -O $VM_CI_IMAGE
 		fi
 		;;
 	*)
@@ -118,10 +125,10 @@ clear
 echo "########## VM DETAILS ##########"
 
 echo -n "Type VM Name: "
-read TEMPLATE_VM_NAME
+read VM_NAME
 echo
 echo -n "Type VM Description: "
-read TEMPLATE_VM_DESCRIPTION
+read VM_DESCRIPTION
 echo
 echo -n "Memory Options:
 1 - 1GB
@@ -130,23 +137,23 @@ echo -n "Memory Options:
 4 - 8GB
 5 - 16GB
 Select VM Memory option (1-5): "
-read TEMPLATE_VM_MEMORY_GB
+read VM_MEMORY_GB
 
-case $TEMPLATE_VM_MEMORY_GB in
+case $VM_MEMORY_GB in
 	1)
-	        TEMPLATE_VM_MEMORY=1024
+	        VM_MEMORY=1024
 	;;
 	2)
-		TEMPLATE_VM_MEMORY=2048
+		VM_MEMORY=2048
 	;;
 	3)
-		TEMPLATE_VM_MEMORY=4096
+		VM_MEMORY=4096
 	;;
 	4)
-		TEMPLATE_VM_MEMORY=8192
+		VM_MEMORY=8192
 	;;
 	5)
-		TEMPLATE_VM_MEMORY=16384
+		VM_MEMORY=16384
 	;;
         *)
                 clear
@@ -157,10 +164,10 @@ case $TEMPLATE_VM_MEMORY_GB in
 esac
 ### VM Cores
 echo -n "Type # of VM CPU Cores: (Example: 2)"
-read TEMPLATE_VM_CORES
+read VM_CORES
 ### VM Sockets
 echo -n "Type # of VM CPU Sockets: (Example: 1)"
-read TEMPLATE_VM_SOCKETS
+read VM_SOCKETS
 
 ### VM Storage
 clear
@@ -169,7 +176,7 @@ echo ""
 echo Storage Availability|awk '{ printf "%-20s %-40s\n", $1, $2 }'
 pvesm status|grep active|awk '{ printf "%-20s %-40s\n", $1, $7 }'
 echo -n "Type name of Storage to install VM: "
-read TEMPLATE_VM_STORAGE
+read VM_STORAGE
 
 
 ### VM Storage Size
@@ -177,7 +184,7 @@ clear
 echo "########## VM SIZE ##########"
 echo ""
 echo -n "Type image size (Example: 32G)"
-read TEMPLATE_VM_SIZE
+read VM_SIZE
 
 
 ### VM Default user
@@ -187,11 +194,11 @@ echo "This tool create user root as default!"
 echo "If you would like to use non-root account, please define username and use sudo when login."
 echo "If you will use root, just type root or keep it empty."
 echo -n "type new username: "
-read TEMPLATE_DEFAULT_USER
+read DEFAULT_USER
 
 # Check username - then define as root if empty
-if [ -z $TEMPLATE_DEFAULT_USERNAME ] ; then
-	TEMPLATE_DEFAULT_USERNAME="root"
+if [ -z $DEFAULT_USER ] ; then
+	DEFAULT_USER="root"
 fi
 
 ### Network
@@ -207,7 +214,7 @@ echo "Choose a Bridge interface to attach VM, options are:"
 	done
 
 echo -n "Type brigde name: (Example vmbr0) "
-read TEMPLATE_VM_BRIDGE
+read VM_BRIDGE
 
 echo "Use DHCP?"
 select yn in "Yes" "No"; do
@@ -219,40 +226,40 @@ done
 if [ $DHCP_USE != "Y" ] ;then
 	### VM IP
 	echo -n "Type VM IP Address (Example: 192.168.0.99): "
-	read TEMPLATE_VM_IP_ADDR
+	read VM_IP_ADDR
 	### VM IP
 	echo -n "Type VM IP BIT MASK. Example: 24, 22, 16, 8 etc." 
 	echo -n "Your network bit mask: "
-	read TEMPLATE_VM_IP_NETMASK
-	TEMPLATE_VM_IP="$TEMPLATE_VM_IP_ADDR/$TEMPLATE_VM_IP_NETMASK"
+	read VM_IP_NETMASK
+	VM_IP="$VM_IP_ADDR/$VM_IP_NETMASK"
 	### VM GW
 	echo -n "Type Network Gateway IP Address. (Example: 192.168.0.1): "
-	read TEMPLATE_VM_GW
+	read VM_GW
 fi
 
-### VM TEMPLATE ID
+### VM ID
 echo "Choose a UNIQ ID for VM, please, do not use any of bellow IDs"
 pvesh get /cluster/resources --type vm|grep qemu|awk '{ print $2}'|cut -d"/" -f2
 echo -n "Type a uniq ID for VM: "
-read TEMPLATE_VM_ID
+read VM_ID
 
 clear
 echo ""
 echo "######### VM DETAILS ##########"
 echo ""
-echo Name: $TEMPLATE_VM_NAME 
-echo Description $TEMPLATE_VM_DESCRIPTION 
-echo Memory:  $TEMPLATE_VM_MEMORY 
-echo Cores: $TEMPLATE_VM_CORES
-echo Sockets: $TEMPLATE_VM_SOCKETS
-echo Template Image: $TEMPLATE_VM_CI_IMAGE
-echo Storage: $TEMPLATE_VM_STORAGE
-echo User: $TEMPLATE_DEFAULT_USER
-echo Attached Bridge: $TEMPLATE_VM_BRIDGE
-echo IP Address/Network: $TEMPLATE_VM_IP
-echo Gateway $TEMPLATE_VM_GW
-echo VM ID: $TEMPLATE_VM_ID
-echo VM SIZE: $TEMPLATE_VM_SIZE
+echo Name: $VM_NAME 
+echo Description $VM_DESCRIPTION 
+echo Memory:  $VM_MEMORY 
+echo Cores: $VM_CORES
+echo Sockets: $VM_SOCKETS
+echo Template Image: $VM_CI_IMAGE
+echo Storage: $VM_STORAGE
+echo User: $DEFAULT_USER
+echo Attached Bridge: $VM_BRIDGE
+echo IP Address/Network: $VM_IP
+echo Gateway $VM_GW
+echo VM ID: $VM_ID
+echo VM SIZE: $VM_SIZE
  
 
 
@@ -269,9 +276,9 @@ echo ""
 echo "##########  Start  VM  Deploy  ##########"
 echo
 #### Check if vm id exist
-qm status $TEMPLATE_VM_ID > /dev/null 2>&1
+qm status $VM_ID > /dev/null 2>&1
 if [ $? -eq 0 ] ; then
-	echo "[FAIL] - unable to create VM $TEMPLATE_VM_ID - VM $TEMPLATE_VM_ID already exists - Try another id"
+	echo "[FAIL] - unable to create VM $VM_ID - VM $VM_ID already exists - Try another id"
 	exit
 fi
 #### Function to check errors
@@ -286,68 +293,71 @@ check_errors() {
 
 ### DO NOT TOUCH
 
+IMG_NAME="$VM_SIZE$ISO_NAME"
+cp $VM_CI_IMAGE $IMG_PATH/$IMG_NAME
+
 ACTION="Image resize"
-qemu-img resize $TEMPLATE_VM_CI_IMAGE $TEMPLATE_VM_SIZE > /dev/null 2>&1
+qemu-img resize $IMG_PATH/$VM_SIZE$ISO_NAME $VM_SIZE > /dev/null 2>&1
 check_errors
 
-ACTION="Create VM Template $TEMPLATE_VM_ID:$TEMPLATE_VM_NAME"
-qm create $TEMPLATE_VM_ID \
-	--name $TEMPLATE_VM_NAME \
-	--memory $TEMPLATE_VM_MEMORY \
-	--net0 virtio,bridge=$TEMPLATE_VM_BRIDGE \
-	--cores $TEMPLATE_VM_CORES \
-	--sockets $TEMPLATE_VM_SOCKETS \
+ACTION="Create VM Template $VM_ID:$VM_NAME"
+qm create $VM_ID \
+	--name $VM_NAME \
+	--memory $VM_MEMORY \
+	--net0 virtio,bridge=$VM_BRIDGE \
+	--cores $VM_CORES \
+#	--sockets $VM_SOCKETS \
 #	--cpu cputype=kvm64 \
 #	--kvm 1 \
 #	--numa 1 > /dev/null 2>&1
 check_errors
 
 ACTION="Import disk"
-qm importdisk $TEMPLATE_VM_ID $TEMPLATE_VM_CI_IMAGE $TEMPLATE_VM_STORAGE > /dev/null 2>&1
+qm importdisk $VM_ID $IMG_PATH/$IMG_NAME $VM_STORAGE > /dev/null 2>&1
 check_errors
 
 ACTION="Set disk controller and image"
-qm set $TEMPLATE_VM_ID --scsihw virtio-scsi-pci --scsi0 $TEMPLATE_VM_STORAGE:vm-$TEMPLATE_VM_ID-disk-0 > /dev/null 2>&1
+qm set $VM_ID --scsihw virtio-scsi-pci --scsi0 $VM_STORAGE:vm-$VM_ID-disk-0 > /dev/null 2>&1
 check_errors
 
 #Cloud INIT
 ACTION="Add cloud-init cdrom"
-qm set $TEMPLATE_VM_ID --ide2 $TEMPLATE_VM_STORAGE:cloudinit > /dev/null 2>&1
+qm set $VM_ID --ide2 $VM_STORAGE:cloudinit > /dev/null 2>&1
 check_errors
 
 ACTION="Set boot disk"
-qm set $TEMPLATE_VM_ID --boot c --bootdisk virtio0 > /dev/null 2>&1
+qm set $VM_ID --boot c --bootdisk scsi0 > /dev/null 2>&1
 check_errors
 
 ACTION="Set serial socket"
-qm set $TEMPLATE_VM_ID --serial0 socket --vga serial0 > /dev/null 2>&1
+qm set $VM_ID --serial0 socket --vga serial0 > /dev/null 2>&1
 check_errors
 
-ACTION="set Qemu Guest Agent Enabled"
-qm set $TEMPLATE_VM_ID --agent 1 > /dev/null 2>&1
-check_errors
-
-#ACTION="Set hotplug options"
-#qm set $TEMPLATE_VM_ID --hotplug disk,network,usb,memory,cpu > /dev/null 2>&1
+#ACTION="set Qemu Guest Agent Enabled"
+#qm set $VM_ID --agent 1 > /dev/null 2>&1
 #check_errors
 
-ACTION="Set name to $TEMPLATE_VM_NAME"
-qm set $TEMPLATE_VM_ID --name $TEMPLATE_VM_NAME > /dev/null 2>&1
-check_errors
+#ACTION="Set hotplug options"
+#qm set $VM_ID --hotplug disk,network,usb,memory,cpu > /dev/null 2>&1
+#check_errors
 
-ACTION="Set default user to $TEMPLATE_DEFAULT_USER"
-qm set $TEMPLATE_VM_ID --ciuser $TEMPLATE_DEFAULT_USER > /dev/null 2>&1
+#ACTION="Set name to $VM_NAME"
+#qm set $VM_ID --name $VM_NAME > /dev/null 2>&1
+#check_errors
+
+ACTION="Set default user to $DEFAULT_USER"
+qm set $VM_ID --ciuser $DEFAULT_USER > /dev/null 2>&1
 check_errors
 
 ACTION="Set authorized ssh keys"
-qm set $TEMPLATE_VM_ID --sshkey ~/.ssh/id_rsa.pub > /dev/null 2>&1
+qm set $VM_ID --sshkey ~/.ssh/id_rsa.pub > /dev/null 2>&1
 check_errors
 
 ACTION="Set IP Address and Gateway"
 if [ $DHCP_USE == Y ] ; then
-	qm set $TEMPLATE_VM_ID --ipconfig0 ip=dhcp > /dev/null 2>&1
+	qm set $VM_ID --ipconfig0 ip=dhcp > /dev/null 2>&1
 else
-	qm set $TEMPLATE_VM_ID --ipconfig0 ip=$TEMPLATE_VM_IP,gw=$TEMPLATE_VM_GW > /dev/null 2>&1
+	qm set $VM_ID --ipconfig0 ip=$VM_IP,gw=$VM_GW > /dev/null 2>&1
 fi
 check_errors
 
@@ -357,12 +367,12 @@ echo ""
 echo "Do you wish to start this VM now?"
 select yn in "Yes" "No"; do
     case $yn in
-        Yes ) qm start $TEMPLATE_VM_ID; break;;
+        Yes ) qm start $VM_ID; break;;
         No ) exit;;
     esac
 done
 
-echo "Now, if VM is up and running, try access $TEMPLATE_DEFAULT_USER@$TEMPLATE_VM_IP_ADDR - or check your VM ip address on DHCP Server."
+echo "Now, if VM is up and running, try access $DEFAULT_USER@$VM_IP_ADDR - or check your VM ip address on DHCP Server."
 echo ""
 echo "Finished"
 echo ""
