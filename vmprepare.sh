@@ -47,4 +47,4 @@ sudo rm -r ../proxmox-template
 
 sleep 2
 
-sudo hutdown -h now
+sudo shutdown -h now
