@@ -43,8 +43,8 @@ ACTION="Shutting down"
 sleep 2 > /dev/null 2>&1
 check_errors
 
-sudo rm -r ../proxmox-template
+rm -r ../proxmox-template
 
 sleep 2
 
-sudo shutdown -h now
+shutdown -h now
