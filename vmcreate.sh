@@ -333,9 +333,9 @@ ACTION="Set serial socket"
 qm set $VM_ID --serial0 socket --vga serial0 > /dev/null 2>&1
 check_errors
 
-#ACTION="set Qemu Guest Agent Enabled"
-#qm set $VM_ID --agent 1 > /dev/null 2>&1
-#check_errors
+ACTION="set Qemu Guest Agent Enabled"
+qm set $VM_ID --agent 1 > /dev/null 2>&1
+check_errors
 
 #ACTION="Set hotplug options"
 #qm set $VM_ID --hotplug disk,network,usb,memory,cpu > /dev/null 2>&1
