@@ -18,7 +18,7 @@ if [ ! -f ~/.ssh/id_rsa.pub ]; then
 	if [ $YES_NO="yes" ]; then
 		ssh-keygen -t rsa -b 4096
         else
-		echo "Create ./pub_keys/id_rsa.pub file, then paste your public ssh key file (id_rsa.pub)"
+		echo "Create ~/.ssh/id_rsa.pub file, then paste your public ssh key file (id_rsa.pub)"
 	 	echo "Script finished"
                 exit
 	fi
@@ -183,7 +183,7 @@ read VM_STORAGE
 clear
 echo "########## VM SIZE ##########"
 echo ""
-echo -n "Type image size (Example: 32G)"
+echo -n "Type image size (Example: 32G) "
 read VM_SIZE
 
 
@@ -247,7 +247,7 @@ clear
 echo ""
 echo "######### VM DETAILS ##########"
 echo ""
-echo Name: $VM_NAME 
+echo Name: $VM_SIZE$VM_NAME 
 echo Description $VM_DESCRIPTION 
 echo Memory:  $VM_MEMORY 
 echo Cores: $VM_CORES
@@ -302,14 +302,15 @@ check_errors
 
 ACTION="Create VM Template $VM_ID:$VM_NAME"
 qm create $VM_ID \
-	--name $VM_NAME \
+	--name $VM_SIZE$VM_NAME \
 	--memory $VM_MEMORY \
 	--net0 virtio,bridge=$VM_BRIDGE \
 	--cores $VM_CORES \
 #	--sockets $VM_SOCKETS \
 #	--cpu cputype=kvm64 \
 #	--kvm 1 \
-#	--numa 1 > /dev/null 2>&1
+#	--numa 1 \
+        > /dev/null 2>&1
 check_errors
 
 ACTION="Import disk"
