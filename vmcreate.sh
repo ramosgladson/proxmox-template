@@ -33,9 +33,9 @@ if [ ! -d $IMG_PATH ] ; then
 fi
 
 #URLS - Available compatible cloud-init images to download - Debina 9/10 and Ubuntu 18.04/20.04
-DEBIAN_9_URL="https://cdimage.debian.org/cdimage/cloud/stretch/daily/20200210-166/debian-9-nocloud-amd64-daily-20200210-166.qcow2"
-DEBIAN_10_URL="https://cdimage.debian.org/cdimage/cloud/buster/latest/debian-10-nocloud-arm64.qcow2"
-DEBIAN_11_URL="http://cdimage.debian.org/cdimage/cloud/bullseye/latest/debian-11-nocloud-amd64.qcow2"
+DEBIAN_9_URL="https://cdimage.debian.org/cdimage/openstack/current-9/debian-9-openstack-amd64.qcow2"
+DEBIAN_10_URL="https://cdimage.debian.org/cdimage/openstack/current-10/debian-10-openstack-amd64.qcow2"
+DEBIAN_11_URL="https://cdimage.debian.org/cdimage/cloud/bullseye/latest/debian-11-genericcloud-amd64.qcow2"
 UBUNTU_1804_URL="https://cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img"
 UBUNTU_2004_URL="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img"
 UBUNTU_2204_URL="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
