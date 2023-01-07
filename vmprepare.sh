@@ -19,8 +19,13 @@ check_errors
 
 # Debian/Ubuntu
 
+
+ACTION="apt update"
+apt update > /dev/null 2>&1
+check_errors
+
 ACTION="Install qemu agent"
-apt-get install qemu-guest-agent > /dev/null 2>&1
+apt install qemu-guest-agent > /dev/null 2>&1
 check_errors
 
 
