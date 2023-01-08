@@ -96,7 +96,7 @@ case $OPT_IMAGE in
 		ISO_NAME="ubuntu-2204.qcow2"
 		VM_CI_IMAGE="$IMG_PATH/$ISO_NAME"
                 if [ ! -f $VM_CI_IMAGE ]; then
-                  i      wget -c $UBUNTU_2204_URL -O $VM_CI_IMAGE
+                        wget -c $UBUNTU_2204_URL -O $VM_CI_IMAGE
                 fi
                 ;;
 	7)
