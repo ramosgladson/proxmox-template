@@ -5,7 +5,7 @@
 #                 for terraform purpose
 #author		 :Gladson Carneiro Ramos
 #date            :2023-01-01
-#version         :0.2
+#version         :0.3
 #usage		 :bash vmcreate.sh
 #based on        :https://github.com/kmee/proxmox-cloud-init-tools/blob/main/deploy.sh
 ############################################################################
@@ -168,6 +168,14 @@ read VM_CORES
 ### VM Sockets
 echo -n "Type # of VM CPU Sockets: (Example: 1)"
 read VM_SOCKETS
+echo -n "Would you like to start this vm on proxmox start up? [y/n] "
+read BOOT_START
+
+if [ $BOOT_START = "y" ]; then
+	VM_ONBOOT = 1
+else
+	VM_ONBOOT = 0
+fi
 
 ### VM Storage
 clear
@@ -247,19 +255,20 @@ clear
 echo ""
 echo "######### VM DETAILS ##########"
 echo ""
-echo Name: $VM_SIZE$VM_NAME 
-echo Description $VM_DESCRIPTION 
-echo Memory:  $VM_MEMORY 
-echo Cores: $VM_CORES
-echo Sockets: $VM_SOCKETS
-echo Template Image: $VM_CI_IMAGE
-echo Storage: $VM_STORAGE
-echo User: $DEFAULT_USER
-echo Attached Bridge: $VM_BRIDGE
-echo IP Address/Network: $VM_IP
-echo Gateway $VM_GW
-echo VM ID: $VM_ID
-echo VM SIZE: $VM_SIZE
+echo Name:                       $VM_SIZE$VM_NAME 
+echo Description                 $VM_DESCRIPTION 
+echo Memory:                     $VM_MEMORY 
+echo Cores:                      $VM_CORES
+echo Sockets:                    $VM_SOCKETS
+echo VM start on proxmox boot:   $BOOT_START
+echo Template Image:             $VM_CI_IMAGE
+echo Storage:                    $VM_STORAGE
+echo User:                       $DEFAULT_USER
+echo Attached Bridge:            $VM_BRIDGE
+echo IP Address/Network:         $VM_IP
+echo Gateway                     $VM_GW
+echo VM ID:                      $VM_ID
+echo VM SIZE:                    $VM_SIZE
  
 
 
@@ -306,6 +315,7 @@ qm create $VM_ID \
 	--memory $VM_MEMORY \
 	--net0 virtio,bridge=$VM_BRIDGE \
 	--cores $VM_CORES \
+        --onboot $VM_ONBOOT \
 #	--sockets $VM_SOCKETS \
 #	--cpu cputype=kvm64 \
 #	--kvm 1 \
